@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1 class="brand"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 7h12l1 13H5L6 7z" />
+                <path d="M9 7a3 3 0 016 0" />
+            </svg>Dashboard</h1><a class="btn s" href="index.html" target="_blank">View store</a><button class="btn d"
+            onclick="out()">Log out</button>
+    </header>
+    <div class="wrap">
+        <div class="stats">
+            <div class="stat"><b id="s1">0</b>Products</div>
+            <div class="stat"><b id="s2">0</b>Categories</div>
+            <div class="stat"><b id="s3">0</b>Images</div>
+        </div>
+        <div class="tabs"><button class="on" id="t1" onclick="tab(1)">Products</button><button id="t2"
+                onclick="tab(2)">Categories</button></div>
+        <div id="p2" hidden>
+            <div class="panel">
+                <div class="row two"><input id="cn" placeholder="New category name"><button class="btn"
+                        onclick="addCat()">Add category</button></div>
+                <div id="cl" class="prev"></div>
+            </div>
+        </div>
+        <div id="p1">
+            <div class="panel">
+                <h3 id="ft" style="margin-top:0">Add product</h3>
+                <div class="row two"><input id="t" placeholder="Title"><input id="pr"
+                        placeholder="Price (e.g. ₦12,000 or $9.99)"></div>
+                <div class="row two"><select id="ct"></select><input id="u" type="url"
+                        placeholder="AliExpress affiliate link"></div>
+                <div class="row"><textarea id="d" placeholder="Description"></textarea><input id="f" type="file"
+                        accept="image/*" multiple>
+                    <div class="prev" id="pv"></div>
+                </div>
+                <div class="row two"><button class="btn" id="sv" onclick="save()">Save product</button><button
+                        class="btn s" onclick="reset()">Clear / cancel edit</button></div>
+                <p id="st" class="mu"></p>
+            </div>
+            <h3>All products</h3>
+            <div id="pl"></div>
+        </div>
+    </div>
+    <script>
+        const $ = id => document.getElementById(id); let db, C = [], P = [], imgs = [], eid = null;
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        (async () => {
+            if (!CFG.URL.startsWith('http')) return location.href = 'login.html'; db = supabase.createClient(CFG.URL, CFG.KEY);
+            const { data } = await db.auth.getSession(); if (!data.session) return location.href = 'login.html'; load()
+        })();
+        async function out() { await db.auth.signOut(); location.href = 'login.html' }
+        function tab(n) { p1.hidden = n != 1; p2.hidden = n != 2; t1.classList.toggle('on', n == 1); t2.classList.toggle('on', n == 2) }
+        async function load() {
+            C = (await db.from('categories').select('*').order('name')).data || []; P = (await db.from('products').select('*').order('created_at', { ascending: false })).data || [];
+            $('s1').textContent = P.length; $('s2').textContent = C.length; $('s3').textContent = P.reduce((n, p) => n + (p.images || []).length, 0);
+            $('ct').innerHTML = C.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+            $('cl').innerHTML = C.map(c => `<span class="btn s" style="padding:6px 10px;border-radius:99px">${esc(c.name)} <a href="#" onclick="delCat(${c.id});return false">&times;</a></span>`).join('');
+            $('pl').innerHTML = P.length ? P.map(p => `<div class="item"><img src="${esc((p.images || [])[0])}"><b>${esc(p.title)}</b><button class="btn s" onclick="edit(${p.id})">Edit</button><button class="btn d" onclick="del(${p.id})">Delete</button></div>`).join('') : '<div class="empty mu"><svg viewBox="0 0 200 150"><rect x="50" y="50" width="100" height="80" rx="12" fill="currentColor" opacity=".15"/><path d="M75 50a25 25 0 0150 0" stroke="currentColor" stroke-width="8" fill="none" opacity=".3"/></svg><p>No products yet. Add your first one above (the store shows demo products until you do).</p></div>'
+        }
+        async function addCat() { const n = $('cn').value.trim(); if (!n) return; const { error } = await db.from('categories').insert({ name: n }); if (error) alert(error.message); $('cn').value = ''; load() }
+        async function delCat(id) { if (confirm('Delete category? Its products become uncategorised.')) { await db.from('categories').delete().eq('id', id); load() } }
+        function pv() { $('pv').innerHTML = imgs.map((u, i) => `<span><img src="${esc(u)}"><button onclick="imgs.splice(${i},1);pv()">&times;</button></span>`).join('') }
+        async function save() {
+            const b = $('sv'); b.disabled = true; $('st').textContent = 'Saving…'; try {
+                for (const f of $('f').files) { const path = `${Date.now()}-${f.name.replace(/[^\w.-]/g, '_')}`; const { error } = await db.storage.from('products').upload(path, f); if (error) throw error; imgs.push(db.storage.from('products').getPublicUrl(path).data.publicUrl) }
+                const row = { title: $('t').value.trim(), price: $('pr').value.trim(), category_id: +$('ct').value || null, affiliate_url: $('u').value.trim(), description: $('d').value.trim(), images: imgs };
+                if (!row.title || !row.affiliate_url) throw new Error('Title and affiliate link are required');
+                const { error } = eid ? await db.from('products').update(row).eq('id', eid) : await db.from('products').insert(row); if (error) throw error; reset(); $('st').textContent = 'Saved'; load()
+            } catch (e) { $('st').textContent = 'Error: ' + e.message } b.disabled = false
+        }
+        function edit(id) { const p = P.find(x => x.id === id); eid = id; imgs = [...(p.images || [])]; $('t').value = p.title; $('pr').value = p.price || ''; $('ct').value = p.category_id; $('u').value = p.affiliate_url; $('d').value = p.description || ''; $('ft').textContent = 'Edit product'; pv(); scrollTo(0, 0) }
+        function reset() { eid = null; imgs = [];['t', 'pr', 'u', 'd', 'f'].forEach(i => $(i).value = ''); $('ft').textContent = 'Add product'; pv() }
+        async function del(id) { if (!confirm('Delete this product?')) return; await db.from('products').delete().eq('id', id); load() }
+    </script>
+</body>
+
+</html>

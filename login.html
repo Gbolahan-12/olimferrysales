@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+</head>
+
+<body class="auth">
+    <form id="lg">
+        <h1 class="brand"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 7h12l1 13H5L6 7z" />
+                <path d="M9 7a3 3 0 016 0" />
+            </svg>Admin Login</h1>
+        <p class="mu" style="margin:0">Sign in to manage your products.</p>
+        <input id="em" type="email" placeholder="Email" required><input id="pw" type="password" placeholder="Password"
+            required>
+        <button class="btn" id="b">Log in</button>
+        <p id="e" class="mu" style="margin:0;color:#e11d48"></p><a href="index.html" class="mu">Back to store</a>
+    </form>
+    <script>
+        const $ = id => document.getElementById(id);
+        if (!CFG.URL.startsWith('http')) $('e').textContent = 'Setup needed: add your Supabase URL and key in config.js (see DEPLOYMENT.md).';
+        else {
+            const db = supabase.createClient(CFG.URL, CFG.KEY);
+            db.auth.getSession().then(({ data }) => { if (data.session) location.href = 'admin.html' });
+            $('lg').onsubmit = async e => {
+                e.preventDefault(); $('b').disabled = true; const { error } = await db.auth.signInWithPassword({ email: $('em').value, password: $('pw').value });
+                if (error) { $('e').textContent = error.message; $('b').disabled = false } else location.href = 'admin.html'
+            }
+        }
+    </script>
+</body>
+
+</html>
