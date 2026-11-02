@@ -4,86 +4,143 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="robots" content="noindex">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Deals Store</title>
+    <meta name="description" content="Handpicked products at great prices.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="store.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
+    <script src="demo-data.js"></script>
 </head>
 
 <body>
-    <header>
-        <h1 class="brand"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 7h12l1 13H5L6 7z" />
-                <path d="M9 7a3 3 0 016 0" />
-            </svg>Dashboard</h1><a class="btn s" href="index.html" target="_blank">View store</a><button class="btn d"
-            onclick="out()">Log out</button>
+    <div class="demo" id="demo" hidden>Preview mode: sample products are shown until you add your own.</div>
+    <header class="nav">
+        <div class="c"><a class="logo" href="./"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 7h12l1 13H5L6 7z" />
+                        <path d="M9 7a3 3 0 016 0" />
+                    </svg></i><span id="site"></span></a>
+            <label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5" />
+                </svg><input id="q" placeholder="Search products" autocomplete="off"></label>
+            <nav class="navlinks"><a href="#shop">Shop</a><a href="#why">Why us</a></nav>
+        </div>
     </header>
-    <div class="wrap">
-        <div class="stats">
-            <div class="stat"><b id="s1">0</b>Products</div>
-            <div class="stat"><b id="s2">0</b>Categories</div>
-            <div class="stat"><b id="s3">0</b>Images</div>
-        </div>
-        <div class="tabs"><button class="on" id="t1" onclick="tab(1)">Products</button><button id="t2"
-                onclick="tab(2)">Categories</button></div>
-        <div id="p2" hidden>
-            <div class="panel">
-                <div class="row two"><input id="cn" placeholder="New category name"><button class="btn"
-                        onclick="addCat()">Add category</button></div>
-                <div id="cl" class="prev"></div>
-            </div>
-        </div>
-        <div id="p1">
-            <div class="panel">
-                <h3 id="ft" style="margin-top:0">Add product</h3>
-                <div class="row two"><input id="t" placeholder="Title"><input id="pr"
-                        placeholder="Price (e.g. ₦12,000 or $9.99)"></div>
-                <div class="row two"><select id="ct"></select><input id="u" type="url"
-                        placeholder="AliExpress affiliate link"></div>
-                <div class="row"><textarea id="d" placeholder="Description"></textarea><input id="f" type="file"
-                        accept="image/*" multiple>
-                    <div class="prev" id="pv"></div>
+    <main class="c">
+        <section class="hero">
+            <div class="in">
+                <div><span class="eye"><b></b>New deals added every week</span>
+                    <h1>Find products you love, at prices that <span>make sense</span></h1>
+                    <p>We handpick the best AliExpress finds so you don't have to scroll for hours. Pick a product,
+                        check the details, and buy securely.</p>
+                    <div class="cta"><a class="btn p" href="#shop">Shop deals<svg width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h14M13 6l6 6-6 6" />
+                            </svg></a><a class="btn g" href="#why">How it works</a></div>
+                    <div class="facts">
+                        <div><b id="n1">0</b>Products</div>
+                        <div><b>Secure</b>Checkout</div>
+                        <div><b>Global</b>Shipping</div>
+                    </div>
                 </div>
-                <div class="row two"><button class="btn" id="sv" onclick="save()">Save product</button><button
-                        class="btn s" onclick="reset()">Clear / cancel edit</button></div>
-                <p id="st" class="mu"></p>
+                <div class="collage" id="col"></div>
             </div>
-            <h3>All products</h3>
-            <div id="pl"></div>
+        </section>
+        <section class="sec" id="shop">
+            <div class="head">
+                <div>
+                    <h2>Trending now</h2>
+                    <p id="cnt">Loading products</p>
+                </div>
+            </div>
+            <div class="cats" id="cats"></div>
+            <div class="grid" id="grid"></div>
+            <div class="none" id="none" hidden>No products match your search.</div>
+        </section>
+        <section class="feat" id="why">
+            <div><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2l3 7 7 .6-5.3 4.6 1.7 7.3L12 17.8 5.6 21.5l1.7-7.3L2 9.600 9 9z" />
+                    </svg></i>
+                <h4>Handpicked quality</h4>
+                <p>Every product is reviewed before it appears here, so you only see items worth your time.</p>
+            </div>
+            <div><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="11" width="16" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 018 0v4" />
+                    </svg></i>
+                <h4>Secure checkout</h4>
+                <p>You complete your purchase on AliExpress, with its buyer protection and trusted payments.</p>
+            </div>
+            <div><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 6h13v10H1zM14 10h5l3 3v3h-8z" />
+                        <circle cx="6" cy="18" r="2" />
+                        <circle cx="18" cy="18" r="2" />
+                    </svg></i>
+                <h4>Ships worldwide</h4>
+                <p>Delivery options and times are shown on AliExpress for your location before you pay.</p>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="c">
+            <p>Affiliate disclosure: we may earn a commission when you buy through our links, at no extra cost to you.
+                Prices and availability are controlled by AliExpress and may change.</p><span id="yr"></span>
+        </div>
+    </footer>
+    <div id="m">
+        <div class="sheet"><button class="x" aria-label="Close" onclick="closeM()">&times;</button>
+            <div class="gal"><img class="main" id="mi" alt="">
+                <div class="th" id="th"></div>
+            </div>
+            <div class="info"><small id="mc"></small>
+                <h2 id="mt"></h2><span class="price" id="mp"></span>
+                <p id="md"></p>
+                <a class="btn p" id="mb" target="_blank" rel="noopener sponsored">Buy on AliExpress<svg width="18"
+                        height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 17L17 7M8 7h9v9" />
+                    </svg></a><em>You will complete your purchase on AliExpress.</em>
+            </div>
         </div>
     </div>
     <script>
-        const $ = id => document.getElementById(id); let db, C = [], P = [], imgs = [], eid = null;
+        const $ = id => document.getElementById(id); let P = [], C = [], cat = null;
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        (async () => {
-            if (!CFG.URL.startsWith('http')) return location.href = 'login.html'; db = supabase.createClient(CFG.URL, CFG.KEY);
-            const { data } = await db.auth.getSession(); if (!data.session) return location.href = 'login.html'; load()
-        })();
-        async function out() { await db.auth.signOut(); location.href = 'login.html' }
-        function tab(n) { p1.hidden = n != 1; p2.hidden = n != 2; t1.classList.toggle('on', n == 1); t2.classList.toggle('on', n == 2) }
-        async function load() {
-            C = (await db.from('categories').select('*').order('name')).data || []; P = (await db.from('products').select('*').order('created_at', { ascending: false })).data || [];
-            $('s1').textContent = P.length; $('s2').textContent = C.length; $('s3').textContent = P.reduce((n, p) => n + (p.images || []).length, 0);
-            $('ct').innerHTML = C.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
-            $('cl').innerHTML = C.map(c => `<span class="btn s" style="padding:6px 10px;border-radius:99px">${esc(c.name)} <a href="#" onclick="delCat(${c.id});return false">&times;</a></span>`).join('');
-            $('pl').innerHTML = P.length ? P.map(p => `<div class="item"><img src="${esc((p.images || [])[0])}"><b>${esc(p.title)}</b><button class="btn s" onclick="edit(${p.id})">Edit</button><button class="btn d" onclick="del(${p.id})">Delete</button></div>`).join('') : '<div class="empty mu"><svg viewBox="0 0 200 150"><rect x="50" y="50" width="100" height="80" rx="12" fill="currentColor" opacity=".15"/><path d="M75 50a25 25 0 0150 0" stroke="currentColor" stroke-width="8" fill="none" opacity=".3"/></svg><p>No products yet. Add your first one above (the store shows demo products until you do).</p></div>'
+        $('site').textContent = document.title = CFG.SITE; $('yr').textContent = '© ' + new Date().getFullYear() + ' ' + CFG.SITE;
+        const ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+        $('grid').innerHTML = Array(8).fill('<div class="card sk"><div class="ph"></div><div class="bd"><i></i><i style="width:60%"></i></div></div>').join('');
+        async function init() {
+            let demo = true;
+            try {
+                if (!CFG.URL.startsWith('http')) throw 0; const db = supabase.createClient(CFG.URL, CFG.KEY);
+                const [a, b] = await Promise.all([db.from('categories').select('*').order('name'), db.from('products').select('*').order('created_at', { ascending: false })]);
+                if (!a.error && !b.error && b.data.length) { C = a.data; P = b.data; demo = false }
+            } catch (e) { }
+            if (demo) { C = DEMO_CATS; P = DEMO_PRODUCTS; $('demo').hidden = false }
+            $('n1').textContent = P.length; $('col').innerHTML = P.slice(0, 3).map(p => `<div><img src="${esc((p.images || [])[0])}" alt=""></div>`).join(''); render()
         }
-        async function addCat() { const n = $('cn').value.trim(); if (!n) return; const { error } = await db.from('categories').insert({ name: n }); if (error) alert(error.message); $('cn').value = ''; load() }
-        async function delCat(id) { if (confirm('Delete category? Its products become uncategorised.')) { await db.from('categories').delete().eq('id', id); load() } }
-        function pv() { $('pv').innerHTML = imgs.map((u, i) => `<span><img src="${esc(u)}"><button onclick="imgs.splice(${i},1);pv()">&times;</button></span>`).join('') }
-        async function save() {
-            const b = $('sv'); b.disabled = true; $('st').textContent = 'Saving…'; try {
-                for (const f of $('f').files) { const path = `${Date.now()}-${f.name.replace(/[^\w.-]/g, '_')}`; const { error } = await db.storage.from('products').upload(path, f); if (error) throw error; imgs.push(db.storage.from('products').getPublicUrl(path).data.publicUrl) }
-                const row = { title: $('t').value.trim(), price: $('pr').value.trim(), category_id: +$('ct').value || null, affiliate_url: $('u').value.trim(), description: $('d').value.trim(), images: imgs };
-                if (!row.title || !row.affiliate_url) throw new Error('Title and affiliate link are required');
-                const { error } = eid ? await db.from('products').update(row).eq('id', eid) : await db.from('products').insert(row); if (error) throw error; reset(); $('st').textContent = 'Saved'; load()
-            } catch (e) { $('st').textContent = 'Error: ' + e.message } b.disabled = false
+        function render() {
+            const q = $('q').value.toLowerCase().trim();
+            $('cats').innerHTML = [{ id: null, name: 'All' }, ...C].map(c => `<button class="${c.id === cat ? 'on' : ''}" onclick="cat=${c.id};render()">${esc(c.name)}</button>`).join('');
+            const l = P.filter(p => (!cat || p.category_id === cat) && p.title.toLowerCase().includes(q)); $('none').hidden = l.length > 0; $('cnt').textContent = l.length + (l.length == 1 ? ' product' : ' products');
+            $('grid').innerHTML = l.map(p => `<article class="card" onclick="show(${p.id})"><div class="ph"><span class="tag">${esc((C.find(c => c.id === p.category_id) || {}).name || 'Deal')}</span><img loading="lazy" src="${esc((p.images || [])[0])}" alt="${esc(p.title)}"></div><div class="bd"><h3>${esc(p.title)}</h3><div class="ft"><span class="price">${esc(p.price)}</span><span class="go">${ARROW}</span></div></div></article>`).join('')
         }
-        function edit(id) { const p = P.find(x => x.id === id); eid = id; imgs = [...(p.images || [])]; $('t').value = p.title; $('pr').value = p.price || ''; $('ct').value = p.category_id; $('u').value = p.affiliate_url; $('d').value = p.description || ''; $('ft').textContent = 'Edit product'; pv(); scrollTo(0, 0) }
-        function reset() { eid = null; imgs = [];['t', 'pr', 'u', 'd', 'f'].forEach(i => $(i).value = ''); $('ft').textContent = 'Add product'; pv() }
-        async function del(id) { if (!confirm('Delete this product?')) return; await db.from('products').delete().eq('id', id); load() }
+        function show(id) {
+            const p = P.find(x => x.id === id), im = p.images || []; $('mt').textContent = p.title; $('mp').textContent = p.price || ''; $('md').textContent = p.description || ''; $('mb').href = p.affiliate_url; $('mc').textContent = (C.find(c => c.id === p.category_id) || {}).name || 'Deal';
+            const set = u => { $('mi').src = u;[...$('th').children].forEach(i => i.classList.toggle('on', i.src === u)) };
+            $('th').innerHTML = im.length > 1 ? im.map(u => `<img src="${esc(u)}" alt="">`).join('') : '';[...$('th').children].forEach(i => i.onclick = () => set(i.src)); set(im[0] || ''); $('m').classList.add('on'); document.body.style.overflow = 'hidden'
+        }
+        function closeM() { $('m').classList.remove('on'); document.body.style.overflow = '' }
+        $('q').oninput = render; $('m').onclick = e => { if (e.target.id == 'm') closeM() }; addEventListener('keydown', e => e.key == 'Escape' && closeM()); init();
     </script>
 </body>
 
