@@ -146,7 +146,7 @@
         function rc() { $('cl').innerHTML = C.length ? C.map(c => `<div class="row"><div class="m"><b>${esc(c.name)}</b><span>${P.filter(p => p.category_id === c.id).length} products</span></div><button class="ib x" onclick="delCat(${c.id})" title="Delete">${IC.tr}</button></div>`).join('') : `<div class="empty">${EMPTY}<h3>No categories yet</h3><p>Create one above, then assign products to it.</p></div>` }
         $('q').oninput = rp; $('fc').onchange = rp;
         $('ac').onclick = async () => { const n = $('cn').value.trim(); if (!n) return toast('Enter a category name', 'e'); const { error } = await db.from('categories').insert({ name: n }); if (error) return toast(error.message, 'e'); $('cn').value = ''; toast('Category added', 's'); load() };
-        $('cn').onkeydown = e => e.key == 'Enter' && $('ac').click();
+        $('cn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('ac').click() } });
         async function delCat(id) { if (await ask('Delete category?', 'Products in it will become uncategorised.')) { await db.from('categories').delete().eq('id', id); toast('Category deleted'); load() } }
         async function del(id) { if (await ask('Delete product?', 'This removes it from your store. This cannot be undone.')) { await db.from('products').delete().eq('id', id); toast('Product deleted'); load() } }
         const open = v => { $('dr').classList.toggle('on', v); $('ov').classList.toggle('on', v) };
